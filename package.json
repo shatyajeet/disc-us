@@ -1,13 +1,15 @@
 {
   "name": "disc-us",
   "version": "1.0.0",
-  "description": "",
+  "description": "Discussion Forum",
   "main": "server.js",
   "scripts": {
-    "build": "webpack",
+    "build": "npm run make && webpack",
+    "make": "npm run make:db",
+    "make:db": "mkdir -p data",
     "start": "node server.js"
   },
-  "author": "",
+  "author": "Satyajeet Parida (shatyajeet@gmail.com)",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.15.1",

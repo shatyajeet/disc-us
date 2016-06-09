@@ -11,7 +11,7 @@ var commentSchema = new mongoose.Schema({
     upVote: 0,
     downVote: 0
   }},
-  topic: {type: Number, ref: 'Topic'}
+  topic: {type: mongoose.Schema.Types.ObjectId, ref: 'Topic'}
 });
 
 module.exports = mongoose.model('Comment', commentSchema);

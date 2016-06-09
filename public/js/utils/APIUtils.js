@@ -20,7 +20,7 @@ const fetchTopics = () => {
 };
 
 const fetchTopic = (topicId) => {
-  let url = '/topics/' + topicId + '/comments', method = 'GET';
+  let url = '/topics/' + topicId, method = 'GET';
   return axiosCustom.request({
     url,
     method
@@ -45,7 +45,17 @@ const submitComment = (topicId, commentObj) => {
   });
 };
 
+const fetchComments = (topicId, pageNumber) => {
+  let url = '/topics/' + topicId + '/comments', method = 'GET', params = {pageNumber};
+  return axiosCustom.request({
+    url,
+    method,
+    params
+  });
+};
+
 export default {
+  fetchComments,
   fetchTopic,
   fetchTopics,
   submitComment,

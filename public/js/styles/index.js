@@ -10,6 +10,11 @@ export default {
   link: {
     color: '#FFF'
   },
+  commentForm: {
+    marginBottom: 30,
+    display: 'inline-block',
+    width: '100%'
+  },
   commentBox: {
     padding: 10,
     border: '1px solid #BCBCBC',

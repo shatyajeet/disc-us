@@ -11,16 +11,39 @@ class TopicContainer extends React.Component {
   constructor (props) {
     super(props);
     this.state = {
-      topic: {}
+      topic: {},
+      loadMore: false,
+      fetchingComments: false,
+      pageNumber: 1
     };
   }
   componentWillMount () {
     const {topicId} = this.props.routeParams;
     APIUtils.fetchTopic(topicId).then((res) => {
       this.setState({
-        topic: res.data
+        topic: res.data.topic,
+        loadMore: res.data.loadMore
       });
     });
+  }
+  onLoadMore () {
+    let {pageNumber, topic} = this.state, {topicId} = this.props.routeParams;
+    this.setState({
+      fetchingComments: true
+    });
+    APIUtils.fetchComments(topicId, pageNumber)
+      .then((res) => {
+        const newComments = res.data.comments;
+        let {comments} = topic;
+        comments = comments.concat(newComments);
+        topic = Object.assign({}, topic, {comments});
+        this.setState({
+          topic,
+          loadMore: res.data.loadMore,
+          pageNumber: pageNumber + 1,
+          fetchingComments: false
+        });
+      });
   }
   onVote (commentId, voteType) {
     const {topicId} = this.props.routeParams, {topic} = this.state;
@@ -57,9 +80,15 @@ class TopicContainer extends React.Component {
       });
   }
   render () {
-    const {topic} = this.state;
+    const {topic, loadMore, fetchingComments} = this.state;
     return (
-      <Topic topic={topic} handleVote={(commentId, voteType) => this.onVote(commentId, voteType)} handleSubmit={(obj, cb) => this.onSubmitForm(obj, cb)} />
+      <Topic topic={topic}
+             loadMore={loadMore}
+             fetchingComments={fetchingComments}
+             handleVote={(commentId, voteType) => this.onVote(commentId, voteType)}
+             handleSubmit={(obj, cb) => this.onSubmitForm(obj, cb)}
+             handleLoadMore={() => this.onLoadMore()}
+      />
     );
   }
 }

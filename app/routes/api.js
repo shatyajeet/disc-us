@@ -5,6 +5,7 @@
 var Topic = require('../models/topic');
 var Comment = require('../models/comment');
 var APIrouter = require('express').Router();
+var async = require('async');
 
 APIrouter.route('/topics')
   .post(function (req, res) {
@@ -29,12 +30,28 @@ APIrouter.route('/topics')
 
 APIrouter.route('/topics/:topic_id')
   .get(function (req, res) {
-    Topic.findById(req.params.topic_id, function (err, topic) {
-      if (err) {
-        return res.status(400).json(err);
-      }
-      return res.status(200).json(topic);
-    });
+    var limit = 10;
+    Topic.findById(req.params.topic_id)
+      .populate({
+        path: 'comments',
+        options: {
+          limit: limit
+        }
+      })
+      .exec(function (err, topic) {
+        if (err) {
+          return res.status(400).json(err);
+        }
+        Topic.findById(req.params.topic_id, function (err, countTopic) {
+          if (err) {
+            return res.status(400).json(err);
+          }
+          return res.status(200).json({
+            topic: topic,
+            loadMore: countTopic.comments.length > limit
+          });
+        });
+      });
   });
 
 APIrouter.route('/topics/:topic_id/comments')
@@ -68,14 +85,42 @@ APIrouter.route('/topics/:topic_id/comments')
     });
   })
   .get(function (req, res) {
-    Topic.findById(req.params.topic_id)
-      .populate('comments')
-      .exec(function (err, topic) {
+    var limit = 10, pageNumber = parseInt(req.query.pageNumber);
+    var commentsQuery = function (callback) {
+      Topic.findById(req.params.topic_id)
+        .populate({
+          path: 'comments',
+          options: {
+            skip: pageNumber * limit,
+            limit: limit
+          }
+        })
+        .exec(function (err, result) {
+          if (err) {
+            return res.status(400).json(err);
+          }
+          callback(null, result.comments);
+        });
+    };
+
+    var commentsCount = function (callback) {
+      Topic.findById(req.params.topic_id, function (err, topic) {
         if (err) {
           return res.status(400).json(err);
         }
-        return res.status(200).json(topic);
+        callback(null, topic.comments.length > ((pageNumber * limit) + limit));
       });
+    };
+
+    async.parallel([commentsCount, commentsQuery], function (err, result) {
+      if (err) {
+        return res.status(400).json(err);
+      }
+      return res.status(200).json({
+        comments: result[1],
+        loadMore: result[0]
+      });
+    });
   });
 
 APIrouter.route('/topics/:topic_id/comments/:comment_id')

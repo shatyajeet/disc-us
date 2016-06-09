@@ -13,6 +13,7 @@ module.exports = {
   entry: './public/js/App.js',
   output: {
     path: './dist',
+    publicPath: '/',
     filename: 'disc_us.js'
   },
   module: {
